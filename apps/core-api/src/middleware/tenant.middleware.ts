@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+import { WorkspaceRole } from '@prisma/client';
 import { prisma } from '../lib/prisma';
 import { AppError } from '../lib/errors';
 
@@ -6,12 +7,13 @@ declare global {
   namespace Express {
     interface Request {
       workspaceId: string;
+      memberRole: WorkspaceRole;
     }
   }
 }
 
-// Validates that the authenticated user is a member of the requested workspace.
-// Attach after `authenticate`. Expects :workspaceId in route params.
+// Validates membership and attaches workspaceId + memberRole.
+// Must run after `authenticate`. Expects :workspaceId in route params.
 export async function requireWorkspaceMember(req: Request, _res: Response, next: NextFunction) {
   const { workspaceId } = req.params;
   if (!workspaceId) return next(new AppError('BAD_REQUEST', 'workspaceId is required', 400));
@@ -25,5 +27,6 @@ export async function requireWorkspaceMember(req: Request, _res: Response, next:
   }
 
   req.workspaceId = workspaceId;
+  req.memberRole = member.role;
   next();
 }
