@@ -28,14 +28,17 @@ env:          ## Create .env from .env.example (safe — does not overwrite)
 
 # ─── Migrations ───────────────────────────────────────────────────────────────
 
-migrate:      ## Run all migrations (Prisma + Laravel)
+migrate:      ## Run all migrations (Prisma + Alembic + Laravel)
 	@echo "── Prisma migrate ──────────────────────────────"
 	cd apps/core-api && npx prisma migrate dev --name auto
+	@echo "── File service (Alembic) ──────────────────────"
+	cd apps/file-service && alembic upgrade head
 	@echo "── Laravel migrate ─────────────────────────────"
 	cd apps/payment && php artisan migrate --force
 
 migrate-prod: ## Deploy migrations in production (no prompt)
 	cd apps/core-api && npx prisma migrate deploy
+	cd apps/file-service && alembic upgrade head
 	cd apps/payment && php artisan migrate --force
 
 # ─── Logs ─────────────────────────────────────────────────────────────────────
