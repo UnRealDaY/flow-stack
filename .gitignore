@@ -1,0 +1,53 @@
+# ─── Environment ─────────────────────────────────────────────────────────────
+.env
+.env.local
+.env.*.local
+
+# ─── Node ────────────────────────────────────────────────────────────────────
+node_modules/
+dist/
+build/
+.next/
+.turbo/
+*.tsbuildinfo
+
+# ─── Python ──────────────────────────────────────────────────────────────────
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# ─── PHP / Laravel ───────────────────────────────────────────────────────────
+vendor/
+storage/logs/
+storage/framework/cache/
+storage/framework/sessions/
+storage/framework/views/
+bootstrap/cache/
+*.log
+
+# ─── Docker ──────────────────────────────────────────────────────────────────
+docker-compose.override.yml
+
+# ─── Editors ─────────────────────────────────────────────────────────────────
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# ─── Coverage / test artifacts ───────────────────────────────────────────────
+coverage/
+.coverage
+htmlcov/
+
+# ─── Misc ────────────────────────────────────────────────────────────────────
+*.pem
+*.key
+*.cert
+plan.txt

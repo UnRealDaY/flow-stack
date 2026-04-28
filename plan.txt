@@ -1,0 +1,105 @@
+goal:
+SaaS на Node.js + Next.js (основная платформа)
+File pipeline — воркер на Python (Sharp → PIL/Pillow, очереди через Celery) — Python здесь органичен для обработки файлов
+Payment engine — на Laravel (он реально хорош для этого, Cashier из коробки)
+Realtime — снова Node.js, потому что там это сильнее всего
+plan: 
+Фаза 0
+Инфраструктура и монорепо
+День 1 — не больше
+Создать структуру монорепо Git
+/apps/core-api, /apps/realtime, /apps/file-service, /apps/payment, /apps/frontend + корневой README
+Показать структуру ↗
+docker-compose.yml с базовыми сервисами Docker
+PostgreSQL, Redis, MinIO (S3-совместимый локально). Healthcheck на каждый контейнер.
+Написать compose ↗
+Общий .env.example и конфиг переменных
+DB_URL, REDIS_URL, S3_*, JWT_SECRET, PORT — всё через env, ничего захардкоженного
+GitHub репо + базовый CI GitHub Actions
+Один workflow: lint + build на push. Добавишь тесты позже по мере написания.
+Фаза 1
+Core API — Node.js
+Недели 1–3 · главный приоритет
+DB schema: users, workspaces, workspace_members, plans PostgreSQL
+Миграции через Prisma или Knex. Продумай soft delete и created_at/updated_at с самого начала.
+Спроектировать схему ↗
+Архитектура: controller → service → repository Node.js
+Настрой слои сразу. Не смешивай бизнес-логику с роутами. Zod для валидации DTO.
+Показать паттерн ↗
+JWT Auth: register, login, refresh token Auth
+Access token (15 мин) + refresh token (7 дней) в httpOnly cookie. Rotation на refresh.
+Реализовать auth ↗
+Middleware: auth, roles, tenant isolation Auth
+Каждый запрос должен проходить tenant check — данные одного workspace недоступны другому.
+Workspace CRUD + invite система
+Создание workspace, приглашение пользователей по email, смена ролей. Это core flow продукта.
+Единый формат ошибок + pagination + filtering
+{ error: { code, message, details } } на все ошибки. Cursor-based или offset pagination.
+Rate limiting + logging + /health endpoint Production
+express-rate-limit + pino для логов. /health возвращает статус DB и Redis. Деплой на Railway сразу.
+Unit тесты на service слой Jest
+Покрой бизнес-логику, не HTTP. Мокай repository. Цель — 60%+ coverage на services.
+Фаза 2
+Realtime сервис — Node.js
+Неделя 4
+WebSocket сервер + Redis pub/sub WS
+socket.io или ws. Redis adapter для горизонтального масштабирования. Аутентификация через JWT при connect.
+Спросить об архитектуре ↗
+Presence: кто онлайн в workspace
+join/leave events, heartbeat каждые 30 сек, TTL в Redis для presence данных.
+Events: file:processed, payment:updated Events
+Разделение transport (WS) и logic (handlers). Core API публикует в Redis → realtime рассылает клиентам.
+Подписка на workspace-specific канал
+Клиент подписывается только на свой workspace. Проверка прав при join.
+Фаза 3
+File processing — Python
+Неделя 5
+FastAPI + Celery + Redis broker Python
+FastAPI для upload endpoint, Celery для async задач, Redis как broker и result backend.
+Показать структуру ↗
+Pillow: resize, compress, convert Python
+Воркер получает задачу → скачивает из S3 → трансформирует → загружает обратно → обновляет статус.
+Статусы задач: pending / processing / done / failed State
+Храни статус в PostgreSQL. Idempotency key чтобы повторный запрос не создавал дублей.
+Retry + dead-letter + уведомление через Redis Reliability
+max_retries=3, exponential backoff. После fail → публикуй событие в Redis → realtime уведомит фронт.
+Фаза 4
+Payment сервис — Laravel
+Неделя 6
+Laravel API + Cashier + планы подписок Laravel
+Stateless API (Sanctum token). Plans table: free/pro/enterprise. Cashier для Stripe интеграции.
+Про Laravel Cashier ↗
+Trial → paid → cancel → refund флоу
+Каждый переход — отдельный метод в SubscriptionService. Не смешивай состояния в одном методе.
+Webhook обработка с idempotency Critical
+Сохраняй stripe_event_id и проверяй перед обработкой. Stripe может слать дубли — это норма.
+Laravel Jobs для async billing логики Queues
+Webhook → синхронная валидация → Job в очередь → async обработка. Никогда не блокируй webhook ответ.
+Событие в Redis после изменения статуса
+После успешного payment → публикуй в Redis → realtime сервис уведомляет фронт.
+Фаза 5
+Frontend — Next.js
+Параллельно с фазами 1–4
+Next.js + Material UI + auth pages Frontend
+Login, register, forgot password. React Query для server state. Начни на неделе 1 параллельно с Core API.
+Dashboard: workspace overview
+Список участников, статистика, последние события. Заглушки где API ещё не готов.
+File upload UI с realtime progress UX
+Drag & drop + progress bar через WebSocket events. pending → processing → done/failed статусы.
+Billing page: план, история, upgrade/cancel
+Stripe Elements для карты. Показывай текущий план, дату renewal, кнопки действий.
+Loading / error states везде Quality
+Skeleton screens, toast уведомления, error boundaries. Без этого UI выглядит как незаконченный прототип.
+Optimistic updates на ключевых действиях
+Invite member, upload file — покажи результат сразу, откатись при ошибке. Чувствуется как production app.
+Фаза 6
+Полировка и запуск
+Неделя 8–9
+README для каждого сервиса + корневой README
+Архитектурная схема, стек, как запустить локально, ссылка на demo. Это первое что видит рекрутер.
+Финальный деплой всех сервисов
+Railway / Render для Node и Python. Laravel на Forge или Railway. Vercel для Next.js.
+Portfolio сайт на Next.js
+About, Projects (4 карточки), Tech stack, GitHub, контакты. Чисто и быстро — не переусложняй.
+Seed data для demo аккаунта
+Рекрутер должен войти одной кнопкой и сразу видеть рабочий продукт. demo@example.com / demo1234.

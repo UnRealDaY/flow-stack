@@ -1,0 +1,96 @@
+name: CI
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+    branches: [main]
+
+jobs:
+  # ── Core API (Node.js) ────────────────────────────────────────────────────
+  core-api:
+    name: core-api — lint & build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/core-api
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: apps/core-api/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run build
+
+  # ── Realtime (Node.js) ────────────────────────────────────────────────────
+  realtime:
+    name: realtime — lint & build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/realtime
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: apps/realtime/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run build
+
+  # ── File Service (Python) ─────────────────────────────────────────────────
+  file-service:
+    name: file-service — lint
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/file-service
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+      - run: pip install ruff
+      - run: ruff check .
+
+  # ── Payment (Laravel) ─────────────────────────────────────────────────────
+  payment:
+    name: payment — lint & test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/payment
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: pdo, pdo_sqlite
+          coverage: none
+      - run: composer install --no-interaction --prefer-dist
+      - run: ./vendor/bin/pint --test
+      - run: php artisan test
+
+  # ── Frontend (Next.js) ────────────────────────────────────────────────────
+  frontend:
+    name: frontend — lint & build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: apps/frontend/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run build

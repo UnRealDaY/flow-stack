@@ -1,0 +1,4 @@
+# Force LF line endings in the repo regardless of OS
+* text=auto eol=lf
+*.bat text eol=crlf
+*.cmd text eol=crlf
