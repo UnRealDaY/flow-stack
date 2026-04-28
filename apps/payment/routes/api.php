@@ -21,3 +21,17 @@ Route::middleware('auth:sanctum')->group(function () {
 
 // Stripe webhook — no auth, verified by signature
 Route::post('/webhook/stripe', [WebhookController::class, 'handle']);
+
+// Health check — used by Docker and load balancers
+Route::get('/health', function () {
+    $db = 'ok';
+    try {
+        \Illuminate\Support\Facades\DB::select('SELECT 1');
+    } catch (\Throwable) {
+        $db = 'error';
+    }
+
+    $status = $db === 'ok' ? 200 : 503;
+
+    return response()->json(['status' => $db === 'ok' ? 'ok' : 'degraded', 'db' => $db], $status);
+});
