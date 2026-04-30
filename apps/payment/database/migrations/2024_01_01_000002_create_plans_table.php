@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('plans', function (Blueprint $table) {
+        Schema::create('stripe_plans', function (Blueprint $table) {
             $table->id();
             $table->string('name')->unique();          // free | pro | enterprise
             $table->string('stripe_price_id')->nullable();
@@ -22,6 +22,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists('plans');
+        Schema::dropIfExists('stripe_plans');
     }
 };

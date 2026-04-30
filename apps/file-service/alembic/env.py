@@ -1,7 +1,13 @@
 import os
+import sys
+from pathlib import Path
 from logging.config import fileConfig
 from sqlalchemy import engine_from_config, pool
 from alembic import context
+
+# Make sure `app/` is importable regardless of where alembic is invoked from
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
 from app.models.file_record import Base
 
 alembic_config = context.config

@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class Plan extends Model
 {
+    protected $table = 'stripe_plans';
+
     protected $fillable = ['name', 'stripe_price_id', 'price', 'currency', 'interval', 'features'];
 
     protected function casts(): array

@@ -51,3 +51,6 @@ htmlcov/
 *.key
 *.cert
 plan.txt
+apps/core-api/package-lock.json
+apps/frontend/package-lock.json
+apps/realtime/package-lock.json
